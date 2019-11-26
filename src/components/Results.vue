@@ -1,35 +1,35 @@
 <template>
   <div>
-    {{ algorithmArray }}
+    {{ acertos }}
   </div>
 </template>
 
 <script>
+import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+
 export default {
   name: 'Results',
+  mixins: [testAlgoritmMixin],
   created() {
-    this.FIFO(5);
+    this.FIFO(this.frames);
   },
   data() {
     return {
-      algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
       faltas: 0,
       acertos: 0,
       memory: [],
-      frames: [5, 10]
+      frames: 70,
     }
   },
   methods: {
     FIFO(frames) {
       let acertos = 0;
-      let faltas = 0;
       let memory = [];
       console.log('fifo')
       for (let i = 0; i < this.algorithmArray.length; i++) {
         if (memory.includes(this.algorithmArray[i].value)) {
           acertos++;
         } else {
-          faltas++;
           if (memory.length < frames) {
             memory.push(this.algorithmArray[i].value);
           } else {
@@ -39,11 +39,8 @@ export default {
         }
       }
       console.log('acertos: ', acertos);
-      console.log('faltas: ', faltas);
-      console.log('memoria final: ', memory);
       return {
         acertos,
-        memory,
         algoritmo: 'FIFO'
       }
     }
