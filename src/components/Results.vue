@@ -5,20 +5,18 @@
 </template>
 
 <script>
-import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+// import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
 
 export default {
   name: 'Results',
-  mixins: [testAlgoritmMixin],
+  // mixins: [testAlgoritmMixin],
   created() {
     // this.FIFO(this.frames);
-    this.SegundaChange(this.frames, 500);
+    this.SegundaChange(5, 10);
   },
   data() {
     return {
-      faltas: 0,
-      acertos: 0,
-      memory: [],
+      algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
       frames: 70,
       algoritmnsGraph: [],
     }
@@ -48,34 +46,53 @@ export default {
       return finalResult;
     },
     SegundaChange(frames, timeToResetBitR) {
-      console.log(frames, timeToResetBitR);
       let acertos = 0;
       let memory = [];
       let countToReset = 0;
       for (let i = 0; i < this.algorithmArray.length; i++) {
+        console.log('memory: ', memory, 'i = ', i)
         countToReset++;
         if (countToReset === timeToResetBitR) {
           memory = this.resetBitR(memory);
+          countToReset = 0;
         }
         const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
+        console.log('memoryIndex: ', memoryIndex)
         if (memoryIndex !== -1) {
+          console.log('if 1')
+          console.log('index da memoria ', memoryIndex, 'valor: ', memory[memoryIndex], 'algoritmo array: ', this.algorithmArray[i].value);
           acertos++
-          memory[memoryIndex].bitR = 1;
+          if (memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
+        } else if (memoryIndex === -1 && memory.length < frames) {
+          console.log('else if')
+          memory.push({
+            value: this.algorithmArray[i].value,
+            bitR: 0,
+          })
         } else {
-          if (memory.length < frames) {
-            memory.push({
-              value: this.algorithmArray[i].value,
-              bitR: 1,
-            })
-          } else {
-            console.log('else')
-            // verifica a memoria:
-            //itens com bitR = 1: bitR setado para zero e movido para o final da memoria
-            // itens com bitR = 0: item removido e substituido pelo outro lá
+          console.log('else 2')
+          // verifica a memoria:
+          //itens com bitR = 1: bitR setado para zero e movido para o final da memoria
+          // itens com bitR = 0: item removido e substituido pelo outro lá
+          for (let j = 0; j < memory.length; j++) {
+            if (memory[j].bitR === 0) {
+              memory.splice(j, 1);
+              memory.push({
+                value: this.algorithmArray[i].value,
+                bitR: 1,
+              });
+            } else {
+              let temporary = memory[j].value;
+              memory.splice(j, 1);
+              memory.push({
+                value: temporary,
+                bitR: 0,
+              })
+            }
           }
         }
+        console.log('memoria no final da interação: ', memory);
       }
-
       console.log(acertos)
     },
     resetBitR(memory) {
