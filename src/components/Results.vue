@@ -49,13 +49,10 @@ export default {
       let acertos = 0;
       let memory = [];
       let countToReset = 0;
+      console.log('memoria', memory);
       for (let i = 0; i < this.algorithmArray.length; i++) {
-        console.log('memory: ', memory, 'i = ', i)
         countToReset++;
-        if (countToReset === timeToResetBitR) {
-          memory = this.resetBitR(memory);
-          countToReset = 0;
-        }
+        console.log('memory: ', memory, 'i = ', i)
         const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
         console.log('memoryIndex: ', memoryIndex)
         if (memoryIndex !== -1) {
@@ -67,29 +64,39 @@ export default {
           console.log('else if')
           memory.push({
             value: this.algorithmArray[i].value,
-            bitR: 0,
+            bitR: 1,
           })
         } else {
           console.log('else 2')
           // verifica a memoria:
           //itens com bitR = 1: bitR setado para zero e movido para o final da memoria
           // itens com bitR = 0: item removido e substituido pelo outro lá
-          for (let j = 0; j < memory.length; j++) {
+          let stop = 0;
+          let j = 0;
+          while (stop !== 1) {
             if (memory[j].bitR === 0) {
               memory.splice(j, 1);
+              console.log(memory);
               memory.push({
                 value: this.algorithmArray[i].value,
                 bitR: 1,
               });
+              stop = 1;
             } else {
               let temporary = memory[j].value;
               memory.splice(j, 1);
               memory.push({
                 value: temporary,
-                bitR: 0,
-              })
+                bitR: 0
+              });
+              j++;
             }
           }
+        }
+        if (countToReset === (timeToResetBitR + 1)) {
+          console.log('resetou');
+          memory = this.resetBitR(memory);
+          countToReset = 0;
         }
         console.log('memoria no final da interação: ', memory);
       }
