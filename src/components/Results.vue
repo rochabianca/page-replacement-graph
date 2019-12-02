@@ -5,18 +5,19 @@
 </template>
 
 <script>
-// import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
 
 export default {
   name: 'Results',
-  // mixins: [testAlgoritmMixin],
+  mixins: [testAlgoritmMixin],
   created() {
     // this.FIFO(this.frames);
-    this.SegundaChange(5, 10);
+    // this.SegundaChange(5, 10);
+    this.MRU(this.frames);
   },
   data() {
     return {
-      algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
+      // algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
       frames: 70,
       algoritmnsGraph: [],
     }
@@ -101,6 +102,35 @@ export default {
         console.log('memoria no final da interação: ', memory);
       }
       console.log(acertos)
+    },
+    MRU(frames) {
+      let acertos = 0;
+      let memory = [];
+      for (let i = 0; i < this.algorithmArray.length; i++) {
+        if (memory.includes(this.algorithmArray[i].value)) {
+          acertos++;
+          let temporary = this.algorithmArray[i].value;
+          const memoryIndex = memory.findIndex(x => x === this.algorithmArray[i].value);
+          if (memoryIndex !== (memory.length - 1)) {
+            memory.splice(memoryIndex, 1);
+            memory.push(temporary);
+          }
+        } else {
+          if (memory.length < frames) {
+            memory.push(this.algorithmArray[i].value);
+          } else {
+            memory.splice(0, 1)
+            memory.push(this.algorithmArray[i].value);
+          }
+        }
+      }
+      console.log('acertos MRU: ', acertos);
+      const finalResult = {
+        algoritmo: 'MRU',
+        acertos,
+      }
+      this.algoritmnsGraph.push(finalResult)
+      return finalResult;
     },
     resetBitR(memory) {
       for (let i = 0; i < memory.length; i++) {
