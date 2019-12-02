@@ -1,25 +1,36 @@
-<template>
-  <div>
-    helou there
-  </div>
-</template>
-
 <script>
-import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+// import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+import { Line } from 'vue-chartjs';
 
 export default {
   name: 'Results',
-  mixins: [testAlgoritmMixin],
+  // extends: Line,
+  mixins: [Line],
+  // mixins: [testAlgoritmMixin],
   created() {
-    // this.FIFO(this.frames);
+    this.FIFO(5);
     // this.SegundaChange(5, 10);
-    this.MRU(this.frames);
+    this.MRU(5);
+  },
+  mounted() {
+    this.renderChart(this.chartdata, this.options)
   },
   data() {
     return {
-      // algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
+      algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
       frames: 70,
+      loaded: false,
       algoritmnsGraph: [],
+      chartdata: {
+        labels: ['Algoritmo', 'Frames'],
+        datasets: [],
+        type: Object,
+        default: null
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
     }
   },
   methods: {
@@ -44,6 +55,11 @@ export default {
         acertos,
       }
       this.algoritmnsGraph.push(finalResult)
+      this.chartdata.datasets.push({
+        label: 'Fifo',
+        backgroundColor: '#f87979',
+        data: [acertos, frames]
+      })
       return finalResult;
     },
     SegundaChange(frames, timeToResetBitR) {
@@ -125,12 +141,11 @@ export default {
         }
       }
       console.log('acertos MRU: ', acertos);
-      const finalResult = {
-        algoritmo: 'MRU',
-        acertos,
-      }
-      this.algoritmnsGraph.push(finalResult)
-      return finalResult;
+      this.chartdata.datasets.push({
+        label: 'MRU',
+        backgroundColor: '#F6A767',
+        data: [acertos, frames]
+      })
     },
     resetBitR(memory) {
       for (let i = 0; i < memory.length; i++) {
