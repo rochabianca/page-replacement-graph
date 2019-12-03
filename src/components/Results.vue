@@ -1,24 +1,24 @@
 <script>
-import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+// import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
 import { Bar } from 'vue-chartjs';
 
 export default {
   name: 'Results',
   extends: Bar,
   // mixins: [Bar],
-  mixins: [testAlgoritmMixin],
+  // mixins: [testAlgoritmMixin],
   created() {
     // this.FIFO(5);
     // this.SegundaChange(5, 10);
     // this.MRU(5);
-    this.NRU(this.frames, 500);
+    this.NRU(4, 10);
   },
   mounted() {
     this.renderChart(this.chartdata, this.options)
   },
   data() {
     return {
-      // algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
+      algorithm: '2W-1R-5R-5W-2R-0W-2R-7R-1W-7W-2R-7W-4R-2R-6W-1W-2W-3W-7R-5R-',
       frames: 70,
       loaded: false,
       algoritmnsGraph: [],
@@ -153,8 +153,10 @@ export default {
         const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
         if (memoryIndex !== -1) {
           acertos++;
+          console.log('acerto: ', memory[memoryIndex])
           if (this.algorithmArray[i].type === 'R' && memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
           if (this.algorithmArray[i].type === 'W' && memory[memoryIndex].bitW !== 1) memory[memoryIndex].bitW = 1;
+          console.log('ao final: ', memory[memoryIndex])
         } else if (memory.length < frames) {
           let bitRvalue = 0, bitWvalue = 0;
           if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
@@ -166,7 +168,11 @@ export default {
             bitW: bitWvalue,
           });
         } else {
-          let indextoSplice = 0;
+          let indextoSplice = 0, bitRvalue = 0, bitWvalue = 0;
+
+          if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
+          if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
+
           const indexClassZero = memory.findIndex(x => x.bitR === 0 && x.bitW === 0);
           if (indexClassZero !== -1) {
             indextoSplice = indexClassZero;
@@ -182,10 +188,6 @@ export default {
             }
           }
           memory.splice(indextoSplice, 1)
-          let bitRvalue = 0, bitWvalue = 0;
-          if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
-          if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
-
           memory.push({
             value: this.algorithmArray[i].value,
             bitR: bitRvalue,
