@@ -1,23 +1,24 @@
 <script>
-// import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
-import { Line } from 'vue-chartjs';
+import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+import { Bar } from 'vue-chartjs';
 
 export default {
   name: 'Results',
-  // extends: Line,
-  mixins: [Line],
-  // mixins: [testAlgoritmMixin],
+  extends: Bar,
+  // mixins: [Bar],
+  mixins: [testAlgoritmMixin],
   created() {
-    this.FIFO(5);
+    // this.FIFO(5);
     // this.SegundaChange(5, 10);
-    this.MRU(5);
+    // this.MRU(5);
+    this.NRU(this.frames, 500);
   },
   mounted() {
     this.renderChart(this.chartdata, this.options)
   },
   data() {
     return {
-      algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
+      // algorithm: '7W-2W-7R-4W-4R-2R-6R-6R-5W-2W-7R-0R-5W-6W-4R-5R-1R-1W-5W-',
       frames: 70,
       loaded: false,
       algoritmnsGraph: [],
@@ -35,8 +36,7 @@ export default {
   },
   methods: {
     FIFO(frames) {
-      let acertos = 0;
-      let memory = [];
+      let acertos = 0, memory = [];
       for (let i = 0; i < this.algorithmArray.length; i++) {
         if (memory.includes(this.algorithmArray[i].value)) {
           acertos++;
@@ -146,6 +146,70 @@ export default {
         backgroundColor: '#F6A767',
         data: [acertos, frames]
       })
+    },
+    NRU(frames, timeToResetBitR) {
+      let acertos = 0, memory = [], countToResetBitR = 0;
+      for (let i = 0; i < this.algorithmArray.length; i++) {
+        const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
+        if (memoryIndex !== -1) {
+          acertos++;
+          if (this.algorithmArray[i].type === 'R' && memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
+          if (this.algorithmArray[i].type === 'W' && memory[memoryIndex].bitW !== 1) memory[memoryIndex].bitW = 1;
+        } else if (memory.length < frames) {
+          let bitRvalue = 0, bitWvalue = 0;
+          if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
+          if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
+
+          memory.push({
+            value: this.algorithmArray[i].value,
+            bitR: bitRvalue,
+            bitW: bitWvalue,
+          });
+        } else {
+          let indextoSplice = 0;
+          const indexClassZero = memory.findIndex(x => x.bitR === 0 && x.bitW === 0);
+          if (indexClassZero !== -1) {
+            indextoSplice = indexClassZero;
+          } else {
+            const indexClassOne = memory.findIndex(x => x.bitR === 0 && x.bitW === 1);
+            if (indexClassOne !== -1) {
+              indextoSplice = indexClassOne;
+            } else {
+              const indexClassTwo = memory.findIndex(x => x.bitR === 1 && x.bitW === 0);
+              if (indexClassTwo !== -1) {
+                indextoSplice = indexClassTwo;
+              }
+            }
+          }
+          memory.splice(indextoSplice, 1)
+          let bitRvalue = 0, bitWvalue = 0;
+          if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
+          if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
+
+          memory.push({
+            value: this.algorithmArray[i].value,
+            bitR: bitRvalue,
+            bitW: bitWvalue,
+          });
+        }
+        countToResetBitR++;
+        if (countToResetBitR === timeToResetBitR) {
+          memory = this.resetBitR(memory);
+          countToResetBitR = 0;
+        }
+      }
+      console.log('acertos NRU: ', acertos, 'memoria final: ', memory);
+      const finalResult = {
+        algoritmo: 'nru',
+        acertos,
+      }
+      this.algoritmnsGraph.push(finalResult)
+      this.chartdata.datasets.push({
+        label: 'NRU',
+        backgroundColor: '#f87979',
+        data: [acertos, frames]
+      })
+      return finalResult;
     },
     resetBitR(memory) {
       for (let i = 0; i < memory.length; i++) {
