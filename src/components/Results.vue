@@ -5,7 +5,6 @@ import { Bar } from 'vue-chartjs';
 export default {
   name: 'Results',
   extends: Bar,
-  // mixins: [Bar],
   // mixins: [testAlgoritmMixin],
   created() {
     // this.FIFO(5);

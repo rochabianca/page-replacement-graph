@@ -1,17 +1,29 @@
 <template>
   <div class="home">
-    <Results/>
+    <GetData @loaded="loadAlgorithm" />
+    <Results v-if="algorithm" :algorithm="algorithm" />
   </div>
 </template>
 
 <script>
-// @ is an alias to /src
+import GetData from '@/components/GetData.vue';
 import Results from '@/components/Results.vue'
 
 export default {
-  name: 'home',
+  name: 'Home',
+  data() {
+    return {
+      algorithm: '',
+    }
+  },
+  methods: {
+    loadAlgorithm(res) {
+      this.algorithm = res;
+    }
+  },
   components: {
-    Results
+    Results,
+    GetData,
   }
 }
 </script>
