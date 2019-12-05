@@ -1,41 +1,58 @@
+<template>
+  <div>
+    <GChart type="BarChart" :data="chartData" :options="chartOptions" />
+  </div>
+</template>
+
 <script>
-// import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
-import { Bar } from 'vue-chartjs';
+import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
+// import { Bar } from 'vue-chartjs';
+import { GChart } from 'vue-google-charts'
 
 export default {
   name: 'Results',
-  extends: Bar,
+  mixins: [testAlgoritmMixin],
+  // extends: Bar,
   props: {
     fileData: Object,
   },
   created() {
-    // this.FIFO(5);
-    // this.SegundaChange(5, 10);
-    // this.MRU(5);
-    this.NRU(4, 10);
+    this.createGraph();
   },
-  mounted() {
-    this.renderChart(this.chartdata, this.options)
+  components: {
+    GChart
   },
   data() {
     return {
-      algorithm: '2W-1R-5R-5W-2R-0W-2R-7R-1W-7W-2R-7W-4R-2R-6W-1W-2W-3W-7R-5R-',
-      frames: 70,
+      // algorithm: '2W-1R-5R-5W-2R-0W-2R-7R-1W-7W-2R-7W-4R-2R-6W-1W-2W-3W-7R-5R-',
+      frames: [70, 80, 90],
+      timeToResetBitR: 500,
       loaded: false,
       algoritmnsGraph: [],
-      chartdata: {
-        labels: ['Algoritmo', 'Frames'],
-        datasets: [],
-        type: Object,
-        default: null
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false
+      chartData: [
+        ['Frames', 'FIFO', 'MRU', 'NRU'],
+      ],
+      chartOptions: {
+        chart: {
+          title: 'Company Performance',
+          curveType: 'function',
+          subtitle: 'Sales, Expenses, and Profit: 2014-2017',
+        }
       }
     }
   },
   methods: {
+    async createGraph() {
+      for (let i = 0; i < this.frames.length; i++) {
+        const acertosFifo = await this.FIFO(this.frames[i]);
+        const acertosMRU = await this.MRU(this.frames[i]);
+        const acertosNUR = await this.NRU(this.frames[i], this.timeToResetBitR);
+
+        this.chartData.push([
+          `${this.frames[i]}`, acertosFifo, acertosMRU, acertosNUR
+        ])
+      }
+    },
     FIFO(frames) {
       let acertos = 0, memory = [];
       for (let i = 0; i < this.algorithmArray.length; i++) {
@@ -56,12 +73,7 @@ export default {
         acertos,
       }
       this.algoritmnsGraph.push(finalResult)
-      this.chartdata.datasets.push({
-        label: 'Fifo',
-        backgroundColor: '#f87979',
-        data: [acertos, frames]
-      })
-      return finalResult;
+      return acertos;
     },
     SegundaChange(frames, timeToResetBitR) {
       let acertos = 0;
@@ -142,11 +154,7 @@ export default {
         }
       }
       console.log('acertos MRU: ', acertos);
-      this.chartdata.datasets.push({
-        label: 'MRU',
-        backgroundColor: '#F6A767',
-        data: [acertos, frames]
-      })
+      return acertos;
     },
     NRU(frames, timeToResetBitR) {
       let acertos = 0, memory = [], countToResetBitR = 0;
@@ -154,10 +162,10 @@ export default {
         const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
         if (memoryIndex !== -1) {
           acertos++;
-          console.log('acerto: ', memory[memoryIndex])
+          // console.log('acerto: ', memory[memoryIndex])
           if (this.algorithmArray[i].type === 'R' && memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
           if (this.algorithmArray[i].type === 'W' && memory[memoryIndex].bitW !== 1) memory[memoryIndex].bitW = 1;
-          console.log('ao final: ', memory[memoryIndex])
+          // console.log('ao final: ', memory[memoryIndex])
         } else if (memory.length < frames) {
           let bitRvalue = 0, bitWvalue = 0;
           if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
@@ -207,12 +215,7 @@ export default {
         acertos,
       }
       this.algoritmnsGraph.push(finalResult)
-      this.chartdata.datasets.push({
-        label: 'NRU',
-        backgroundColor: '#f87979',
-        data: [acertos, frames]
-      })
-      return finalResult;
+      return acertos;
     },
     resetBitR(memory) {
       for (let i = 0; i < memory.length; i++) {
