@@ -6,8 +6,8 @@
     <p class="subtitle">
       Algoritmos de substituição de páginas
     </p>
-    <Results v-if="fileData" :file-data="fileData" />
     <GetData @calculate-results="loadData" />
+    <Results v-if="fileData" :file-data="fileData" />
   </div>
 </template>
 

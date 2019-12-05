@@ -47,9 +47,16 @@ export default {
     calculate() {
       this.$emit('calculate-results', {
         file: this.file,
-        frames: this.frames,
+        frames: this.framesArray,
         timeToResetBitR: this.timeToResetBitR,
       })
+    },
+  },
+  computed: {
+    framesArray() {
+      return this.frames.split(',').map(function (item) {
+        return parseInt(item, 10);
+      });
     }
   }
 };
@@ -60,6 +67,7 @@ export default {
 
 .get-data {
   margin-top: 60px;
+  margin-bottom: 60px;
   background-color: $primary;
   padding: 30px 15px;
   display: flex;
