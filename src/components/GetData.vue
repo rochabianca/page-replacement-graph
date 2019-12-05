@@ -1,92 +1,101 @@
 <template>
-  <div>
-    <div class="file-input">
-      <input @change="loadTextFromFile" type="file" id="file" />
-      <span class="button">Escolher arquivo</span>
-      <span class="label" v-if="file === ''">Nenhum arquivo selecionado</span>
-      <span v-else class="label">{{ filename }}</span>
+  <div class="get-data">
+    <div class="get-data__input">
+      <label>Escolha seu arquivo</label>
+      <get-file v-model="file" />
     </div>
 
-    <input v-model="frames" type="text" />
-    <input v-model="timeToResetBitR" type="number" />
+    <div class="get-data__input">
+      <label for="frames">Quantidade de Frames</label>
+      <input
+        class="get-data__input--input"
+        id="frames"
+        v-model="frames"
+        type="text"
+      />
+    </div>
+    <div class="get-data__input">
+      <label for="frames">Tempo para resetar o bit R</label>
+      <input
+        class="get-data__input--input"
+        v-model="timeToResetBitR"
+        type="number"
+      />
+    </div>
+    <div class="get-data__input">
+      <button @click="calculate" class="btn">Calcular</button>
+    </div>
   </div>
 </template>
 
 <script>
+import GetFile from './GetFile';
+
 export default {
   name: 'GetData',
+  components: {
+    GetFile
+  },
   data() {
     return {
-      filename: '',
       file: '',
       frames: '',
       timeToResetBitR: 0,
     }
   },
   methods: {
-    loadTextFromFile(ev) {
-      const file = ev.target.files[0];
-      const reader = new FileReader();
-      this.getFileName(ev.target.files[0].name);
-
-      reader.onload = e => {
-        console.log(e)
-        this.file = e.target.result;
-        // this.$emit("loaded", e.target.result);
-      }
-      reader.readAsText(file);
-    },
-    getFileName(filename) {
-      this.filename = filename.slice(0, 25) + '...'
+    calculate() {
+      this.$emit('calculate-results', {
+        file: this.file,
+        frames: this.frames,
+        timeToResetBitR: this.timeToResetBitR,
+      })
     }
   }
 };
 </script>
 
 <style lang="scss" scoped>
-.file-input {
-  display: inline-block;
-  text-align: left;
-  background: #fff;
-  border: 2px solid #1017e4;
-  padding: 10px;
-  width: 400px;
-  position: relative;
+@import "@/assets/variables.scss";
+
+.get-data {
+  margin-top: 60px;
+  background-color: $primary;
+  padding: 30px 15px;
+  display: flex;
+  align-items: flex-end;
+  .get-data__input {
+    margin: 0 15px;
+    label {
+      font-size: 18px;
+      display: block;
+      color: white;
+      margin-bottom: 5px;
+    }
+    .get-data__input--input {
+      padding: 5px;
+      height: 35px;
+      border: none;
+      border-radius: 5px;
+      width: 100%;
+    }
+  }
+}
+
+.btn {
+  width: 160px;
+  height: 46px;
   border-radius: 5px;
-}
-
-.file-input > [type="file"] {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  z-index: 10;
-  cursor: pointer;
-}
-
-.file-input > .button {
-  display: inline-block;
-  cursor: pointer;
-  background: #eee;
-  padding: 8px 16px;
-  border-radius: 2px;
-  margin-right: 8px;
-}
-
-.file-input:hover > .button {
-  background: dodgerblue;
+  font-size: 16px;
+  text-transform: uppercase;
+  background: $black;
   color: white;
-}
+  transition: all ease 0.3s;
+  border: none;
 
-.file-input > .label {
-  color: #333;
-  white-space: nowrap;
-  opacity: 0.3;
-}
-
-.file-input.-chosen > .label {
-  opacity: 1;
+  &:hover {
+    background: white;
+    color: $black;
+  }
 }
 </style>

@@ -1,7 +1,13 @@
 <template>
   <div class="home">
-    <GetData @loaded="loadAlgorithm" />
-    <Results v-if="algorithm" :algorithm="algorithm" />
+    <h1 class="title">
+      Trabalho de SO
+    </h1>
+    <p class="subtitle">
+      Algoritmos de substituição de páginas
+    </p>
+    <Results v-if="fileData" :file-data="fileData" />
+    <GetData @calculate-results="loadData" />
   </div>
 </template>
 
@@ -13,12 +19,12 @@ export default {
   name: 'Home',
   data() {
     return {
-      algorithm: '',
+      fileData: null,
     }
   },
   methods: {
-    loadAlgorithm(res) {
-      this.algorithm = res;
+    loadData(res) {
+      this.fileData = res;
     }
   },
   components: {
@@ -27,3 +33,20 @@ export default {
   }
 }
 </script>
+
+<style lang="scss" scoped>
+@import "@/assets/variables.scss";
+.title,
+.subtitle {
+  text-align: center;
+}
+.title {
+  color: $black;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+.subtitle {
+  color: $dark-gray;
+  font-weight: lighter;
+}
+</style>

@@ -5,7 +5,9 @@ import { Bar } from 'vue-chartjs';
 export default {
   name: 'Results',
   extends: Bar,
-  // mixins: [testAlgoritmMixin],
+  props: {
+    fileData: Object,
+  },
   created() {
     // this.FIFO(5);
     // this.SegundaChange(5, 10);
