@@ -62,7 +62,7 @@ export default {
       algoritmnsGraph: [],
       algorithmTable: [],
       chartData: [
-        ['Frames', 'FIFO', 'MRU', 'NRU', 'Segunda Chance'],
+        ['Frames', 'FIFO', 'MRU', 'NRU', 'Segunda Chance', 'Otimo'],
       ],
       chartOptions: {
         bars: 'horizontal', // Required for Material Bar Charts.
@@ -79,9 +79,10 @@ export default {
         const acertosMRU = await this.MRU(this.fileData.frames[i]);
         const acertosNUR = await this.NRU(this.fileData.frames[i], this.fileData.timeToResetBitR);
         const acertosSegundaChance = await this.SegundaChange(this.fileData.frames[i], this.fileData.timeToResetBitR);
+        // const acertosOtimo = await this.Otimo(this.fileData.frames[i]);
 
         await this.chartData.push([
-          `${this.fileData.frames[i]}`, acertosFifo, acertosMRU, acertosNUR, acertosSegundaChance
+          `${this.fileData.frames[i]}`, acertosFifo, acertosMRU, acertosNUR, acertosSegundaChance, 0
         ])
         await this.algorithmTable.push({
           frames: this.fileData.frames[i],
@@ -107,7 +108,7 @@ export default {
           }
         }
       }
-      console.log('acertos FIFO: ', acertos);
+      // console.log('acertos FIFO: ', acertos);
       const finalResult = {
         algoritmo: 'FIFO',
         acertos,
@@ -119,13 +120,13 @@ export default {
       let acertos = 0;
       let memory = [];
       let countToReset = 0;
+
       for (let i = 0; i < this.algorithmArray.length; i++) {
-        countToReset++;
         const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
         if (memoryIndex !== -1) {
           acertos++
-          if (memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
-        } else if (memoryIndex === -1 && memory.length < frames) {
+          memory[memoryIndex].bitR = 1;
+        } else if (memory.length < frames) {
           memory.push({
             value: this.algorithmArray[i].value,
             bitR: 1,
@@ -135,34 +136,30 @@ export default {
           //itens com bitR = 1: bitR setado para zero e movido para o final da memoria
           // itens com bitR = 0: item removido e substituido pelo outro lá
           let stop = 0;
-          let j = 0;
-
           while (stop !== 1) {
-            if (memory[j].bitR === 0) {
-              memory.splice(j, 1);
-              console.log(memory);
+            if (memory[0].bitR === 0) {
+              memory.splice(0, 1);
               memory.push({
                 value: this.algorithmArray[i].value,
                 bitR: 1,
               });
               stop = 1;
             } else {
-              let temporary = memory[j].value;
-              memory.splice(j, 1);
+              let temporary = memory[0].value;
+              memory.splice(0, 1);
               memory.push({
                 value: temporary,
                 bitR: 0
               });
-              j++;
             }
           }
         }
-        if (countToReset === timeToResetBitR) {
+        countToReset++;
+        if (countToReset === timeToResetBitR + 1) {
           memory = this.resetBitR(memory);
           countToReset = 0;
         }
       }
-      console.log('Acertos segunda chance: ', acertos)
       return acertos;
     },
     MRU(frames) {
@@ -186,7 +183,6 @@ export default {
           }
         }
       }
-      console.log('acertos MRU: ', acertos);
       return acertos;
     },
     NRU(frames, timeToResetBitR) {
@@ -196,23 +192,21 @@ export default {
         if (memoryIndex !== -1) {
           acertos++;
           // console.log('acerto: ', memory[memoryIndex])
-          if (this.algorithmArray[i].type === 'R' && memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
+          memory[memoryIndex].bitR = 1;
           if (this.algorithmArray[i].type === 'W' && memory[memoryIndex].bitW !== 1) memory[memoryIndex].bitW = 1;
           // console.log('ao final: ', memory[memoryIndex])
         } else if (memory.length < frames) {
           let bitRvalue = 1, bitWvalue = 0;
-          if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
+          // if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
           if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
-
           memory.push({
             value: this.algorithmArray[i].value,
             bitR: bitRvalue,
             bitW: bitWvalue,
           });
         } else {
-          let indextoSplice = 0, bitRvalue = 1, bitWvalue = 0;
+          let indextoSplice = 0, bitWvalue = 0;
 
-          if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
           if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
 
           const indexClassZero = memory.findIndex(x => x.bitR === 0 && x.bitW === 0);
@@ -237,7 +231,7 @@ export default {
           memory.splice(indextoSplice, 1)
           memory.push({
             value: this.algorithmArray[i].value,
-            bitR: bitRvalue,
+            bitR: 1,
             bitW: bitWvalue,
           });
         }
@@ -247,12 +241,81 @@ export default {
           countToResetBitR = 0;
         }
       }
-      console.log('acertos NRU: ', acertos, 'memoria final: ', memory);
+      // console.log('acertos NRU: ', acertos, 'memoria final: ', memory);
       const finalResult = {
         algoritmo: 'nru',
         acertos,
       }
       this.algoritmnsGraph.push(finalResult)
+      return acertos;
+    },
+    Otimo(frames) {
+      let pages = [];
+      for (let i = 0; i < this.algorithmArray.length; i++) {
+        // let a = parseInt(this.algorithmArray[i].value.replace(/[^0-9]/g, ''));
+        pages.push(this.algorithmArray[i].value);
+        // pages.push(pages.push(this.algorithmArray[i].value););
+      }
+      let acertos = 0, temp = [], flag1, flag2, flag3, pos, max, faults = 0;
+      for (let i = 0; i < frames; ++i) {
+        frames[i] = -1;
+      }
+      for (let i = 0; i < this.algorithmArray.length; ++i) {
+        flag1 = flag2 = 0;
+        for (let j = 0; j < frames; ++j) {
+          if (frames[j] == pages[i]) {
+            flag1 = flag2 = 1;
+          }
+        }
+        if (flag1 == 0) {
+          for (let j = 0; j < frames; ++j) {
+            if (frames[j] == -1) {
+              faults++;
+              frames[j] = pages[i];
+              flag2 = 1;
+            }
+          }
+          acertos++;
+        }
+
+        if (flag2 == 0) {
+          flag3 = 0;
+          for (let j = 0; j < frames; ++j) {
+            temp[j] = -1;
+            for (let k = i + 1; k < this.algorithmArray.length; ++k) {
+              if (frames[j] == pages[k]) {
+                temp[j] = k;
+              }
+            }
+          }
+
+          for (let j = 0; j < frames; ++j) {
+            if (temp[j] == -1) {
+              pos = j;
+              flag3 = 1;
+            }
+          }
+
+          if (flag3 == 0) {
+            max = temp[0];
+            pos = 0;
+            for (let j = 1; j < frames; ++j) {
+              if (temp[j] > max) {
+                max = temp[j];
+                pos = j;
+              }
+            }
+          }
+
+          frames[pos] = pages[i];
+          faults++;
+        }
+        // for (let j = 0; j < frames; j++) {
+        //   // console.log("%d\t", frames[j]);
+        // }
+      }
+      console.log("\n\nTotal Page Faults = %d", faults);
+      // console.log("\n\nTotal acertos = %d", acertos);
       return acertos;
     },
     resetBitR(memory) {
