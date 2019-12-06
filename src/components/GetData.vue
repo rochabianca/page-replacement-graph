@@ -46,7 +46,7 @@ export default {
   methods: {
     calculate() {
       this.$emit('calculate-results', {
-        file: this.file,
+        algorithm: this.file,
         frames: this.framesArray,
         timeToResetBitR: this.timeToResetBitR,
       })

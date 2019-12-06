@@ -5,14 +5,10 @@
 </template>
 
 <script>
-import testAlgoritmMixin from '@/mixins/test-algoritm-mixin';
-// import { Bar } from 'vue-chartjs';
 import { GChart } from 'vue-google-charts'
 
 export default {
   name: 'Results',
-  mixins: [testAlgoritmMixin],
-  // extends: Bar,
   props: {
     fileData: Object,
   },
@@ -24,32 +20,23 @@ export default {
   },
   data() {
     return {
-      // algorithm: '2W-1R-5R-5W-2R-0W-2R-7R-1W-7W-2R-7W-4R-2R-6W-1W-2W-3W-7R-5R-',
-      frames: [70, 80, 90],
-      timeToResetBitR: 500,
-      loaded: false,
       algoritmnsGraph: [],
       chartData: [
         ['Frames', 'FIFO', 'MRU', 'NRU'],
       ],
       chartOptions: {
-        chart: {
-          title: 'Company Performance',
-          curveType: 'function',
-          subtitle: 'Sales, Expenses, and Profit: 2014-2017',
-        }
       }
     }
   },
   methods: {
     async createGraph() {
-      for (let i = 0; i < this.frames.length; i++) {
-        const acertosFifo = await this.FIFO(this.frames[i]);
-        const acertosMRU = await this.MRU(this.frames[i]);
-        const acertosNUR = await this.NRU(this.frames[i], this.timeToResetBitR);
+      for (let i = 0; i < this.fileData.frames.length; i++) {
+        const acertosFifo = await this.FIFO(this.fileData.frames[i]);
+        const acertosMRU = await this.MRU(this.fileData.frames[i]);
+        const acertosNUR = await this.NRU(this.fileData.frames[i], this.fileData.timeToResetBitR);
 
         this.chartData.push([
-          `${this.frames[i]}`, acertosFifo, acertosMRU, acertosNUR
+          `${this.fileData.frames[i]}`, acertosFifo, acertosMRU, acertosNUR
         ])
       }
     },
@@ -226,7 +213,7 @@ export default {
   },
   computed: {
     algorithmArray() {
-      let response = this.algorithm.split('-');
+      let response = this.fileData.algorithm.split('-');
       let responseArray = [];
       response.pop()
       for (let i = 0; i < response.length; i++) {

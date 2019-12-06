@@ -7,7 +7,7 @@
       Algoritmos de substituição de páginas
     </p>
     <GetData @calculate-results="loadData" />
-    <Results :file-data="fileData" />
+    <Results v-if="fileData" :file-data="fileData" />
   </div>
 </template>
 
