@@ -23,7 +23,12 @@
       />
     </div>
     <div class="get-data__input">
-      <button @click="calculate" class="btn">Calcular</button>
+      <button @click="calculate" @keyup.enter="calculate" class="btn">
+        Calcular
+      </button>
+    </div>
+    <div class="get-data__input">
+      <button @click="cleanData" class="btn btn-muted">Limpar Data</button>
     </div>
   </div>
 </template>
@@ -51,6 +56,9 @@ export default {
         timeToResetBitR: this.timeToResetBitR,
       })
     },
+    cleanData() {
+      this.$emit('calculate-results', null)
+    }
   },
   computed: {
     framesArray() {
@@ -100,6 +108,16 @@ export default {
   color: white;
   transition: all ease 0.3s;
   border: none;
+  cursor: pointer;
+
+  &.btn-muted {
+    background: $gray;
+    color: $black;
+    &:hover {
+      background: $black;
+      color: white;
+    }
+  }
 
   &:hover {
     background: white;

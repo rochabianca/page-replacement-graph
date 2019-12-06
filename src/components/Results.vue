@@ -1,6 +1,11 @@
 <template>
   <div>
-    <GChart type="BarChart" :data="chartData" :options="chartOptions" />
+    <GChart
+      style="max-width: 100%"
+      type="BarChart"
+      :data="chartData"
+      :options="chartOptions"
+    />
 
     <div class="mt-60 tbl-header table-bg">
       <table cellpadding="0" cellspacing="0" border="0">
@@ -57,13 +62,13 @@ export default {
       algoritmnsGraph: [],
       algorithmTable: [],
       chartData: [
-        ['Frames', 'FIFO', 'MRU', 'NRU'],
+        ['Frames', 'FIFO', 'MRU', 'NRU', 'Segunda Chance'],
       ],
       chartOptions: {
         bars: 'horizontal', // Required for Material Bar Charts.
         hAxis: { format: 'decimal' },
         height: 400,
-        colors: ['#1b9e77', '#E60D1D', '#7570b3']
+        colors: ['#1b9e77', '#E60D1D', '#7570b3', '#35495d', '#999']
       }
     }
   },
@@ -73,16 +78,17 @@ export default {
         const acertosFifo = await this.FIFO(this.fileData.frames[i]);
         const acertosMRU = await this.MRU(this.fileData.frames[i]);
         const acertosNUR = await this.NRU(this.fileData.frames[i], this.fileData.timeToResetBitR);
+        const acertosSegundaChance = await this.SegundaChange(this.fileData.frames[i], this.fileData.timeToResetBitR);
 
         await this.chartData.push([
-          `${this.fileData.frames[i]}`, acertosFifo, acertosMRU, acertosNUR
+          `${this.fileData.frames[i]}`, acertosFifo, acertosMRU, acertosNUR, acertosSegundaChance
         ])
         await this.algorithmTable.push({
           frames: this.fileData.frames[i],
           acertosFifo,
           acertosMRU,
           acertosNUR,
-          acertosSegundaChance: 0,
+          acertosSegundaChance,
           acertosOtimo: 0,
         })
       }
@@ -113,30 +119,24 @@ export default {
       let acertos = 0;
       let memory = [];
       let countToReset = 0;
-      console.log('memoria', memory);
       for (let i = 0; i < this.algorithmArray.length; i++) {
         countToReset++;
-        console.log('memory: ', memory, 'i = ', i)
         const memoryIndex = memory.findIndex(x => x.value === this.algorithmArray[i].value);
-        console.log('memoryIndex: ', memoryIndex)
         if (memoryIndex !== -1) {
-          console.log('if 1')
-          console.log('index da memoria ', memoryIndex, 'valor: ', memory[memoryIndex], 'algoritmo array: ', this.algorithmArray[i].value);
           acertos++
           if (memory[memoryIndex].bitR !== 1) memory[memoryIndex].bitR = 1;
         } else if (memoryIndex === -1 && memory.length < frames) {
-          console.log('else if')
           memory.push({
             value: this.algorithmArray[i].value,
             bitR: 1,
           })
         } else {
-          console.log('else 2')
           // verifica a memoria:
           //itens com bitR = 1: bitR setado para zero e movido para o final da memoria
           // itens com bitR = 0: item removido e substituido pelo outro lá
           let stop = 0;
           let j = 0;
+
           while (stop !== 1) {
             if (memory[j].bitR === 0) {
               memory.splice(j, 1);
@@ -157,14 +157,13 @@ export default {
             }
           }
         }
-        if (countToReset === (timeToResetBitR + 1)) {
-          console.log('resetou');
+        if (countToReset === timeToResetBitR) {
           memory = this.resetBitR(memory);
           countToReset = 0;
         }
-        console.log('memoria no final da interação: ', memory);
       }
-      console.log(acertos)
+      console.log('Acertos segunda chance: ', acertos)
+      return acertos;
     },
     MRU(frames) {
       let acertos = 0;
@@ -201,7 +200,7 @@ export default {
           if (this.algorithmArray[i].type === 'W' && memory[memoryIndex].bitW !== 1) memory[memoryIndex].bitW = 1;
           // console.log('ao final: ', memory[memoryIndex])
         } else if (memory.length < frames) {
-          let bitRvalue = 0, bitWvalue = 0;
+          let bitRvalue = 1, bitWvalue = 0;
           if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
           if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
 
@@ -211,7 +210,7 @@ export default {
             bitW: bitWvalue,
           });
         } else {
-          let indextoSplice = 0, bitRvalue = 0, bitWvalue = 0;
+          let indextoSplice = 0, bitRvalue = 1, bitWvalue = 0;
 
           if (this.algorithmArray[i].type === 'R') bitRvalue = 1;
           if (this.algorithmArray[i].type === 'W') bitWvalue = 1;
@@ -227,6 +226,11 @@ export default {
               const indexClassTwo = memory.findIndex(x => x.bitR === 1 && x.bitW === 0);
               if (indexClassTwo !== -1) {
                 indextoSplice = indexClassTwo;
+              } else {
+                const indexClassThree = memory.findIndex(x => x.bitR === 1 && x.bitW === 1);
+                if (indexClassThree !== -1) {
+                  indextoSplice = indexClassThree;
+                }
               }
             }
           }
